@@ -1,10 +1,12 @@
 # 🚀 Nexu OpenAI Proxy
 
-专为 **Trae IDE** 设计的反向代理工具，将 Nexu 自带的 AI 模型转换为 OpenAI 兼容 API，支持 function calling，**完美适配 Trae**，同时也支持 Cline、Cursor 等插件。
+专为 **Trae IDE** 设计的反向代理工具，将 Nexu 自带的 AI 模型转换为标准 OpenAI API 格式，支持 function calling。
+
+> 💡 不知道怎么获取 Nexu API Key？问问 AI 或者查看配置文件。
 
 ## ✨ 特性
 
-- ✅ OpenAI 兼容接口
+- ✅ 标准 OpenAI API 格式
 - ✅ 支持 Agent / Function Calling
 - ✅ Streaming 响应
 - ✅ 多模型切换
@@ -35,7 +37,7 @@ pip install -r requirements.txt
 
 ```bash
 NEXU_API_BASE=https://link.nexu.io/v1
-NEXU_API_KEY=your_api_key_here  # 替换为你的 Nexu API Key
+NEXU_API_KEY=your_api_key_here  # 不知道怎么获取？问问 AI 或查看配置文件
 PROXY_HOST=127.0.0.1
 PROXY_PORT=8866
 ```
@@ -46,16 +48,15 @@ PROXY_PORT=8866
 python main.py
 ```
 
-服务启动后会在 `http://127.0.0.1:8866` 提供 OpenAI 兼容 API。
+服务启动后会在 `http://127.0.0.1:8866` 提供标准 OpenAI API。
 
-### 4. 在 Cline/Cursor 中使用
+### 4. 在 Trae 中使用
 
-在设置中添加自定义 OpenAI 兼容端点：
+在 Trae 的设置中添加自定义 OpenAI API：
 
 - **Base URL**: `https://127.0.0.1:8866/v1`
 - **API Key**: 任意值（如 `sk-test`）
-
-支持 Trae IDE、Cline、Cursor 等支持 OpenAI API 的工具。
+- **Model**: 任选一个支持的模型 ID
 
 ## 📄 License
 
