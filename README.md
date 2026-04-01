@@ -9,10 +9,17 @@
 
 ## 📌 项目列表
 
-| 项目 | 描述 | 标签 |
-|------|------|------|
-| [Nexu OpenAI Proxy](./projects/nexu-openai-proxy) | 专为 Trae IDE 设计的 Nexu 模型反向代理 | 🔥 Tool |
-| (更多项目筹备中...) | - | - |
+| 项目 | 描述 | 进度 | 标签 |
+|------|------|------|------|
+| [nexu-openai-proxy](./nexu-openai-proxy/) | 专为 Trae IDE 设计的 Nexu 模型反向代理 | 🔥 已完成 | Tool |
+| [openclaw-plus](https://github.com/A956-st/openclaw-plus) | 能操控电脑的 AI Agent 桌面助手 | 🟡 ~10% | Agent |
+| (更多项目筹备中...) | - | - | - |
+
+## 🎯 下一步计划
+
+- 继续开发 **OpenClaw Plus**：完善桌面操控、微信/QQ 控制、浏览器控制等核心功能
+- 探索更多 AI 模型的免费使用机会
+- 开发更多实用的 AI 工具
 
 ## 🤝 贡献
 
