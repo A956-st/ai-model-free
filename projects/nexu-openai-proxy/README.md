@@ -1,6 +1,6 @@
 # 🚀 Nexu OpenAI Proxy
 
-将 Nexu 自带的 AI 模型反向代理为 OpenAI 兼容 API，支持 function calling，可接入 Trae IDE、Cline、Cursor 等插件。
+专为 **Trae IDE** 设计的反向代理工具，将 Nexu 自带的 AI 模型转换为 OpenAI 兼容 API，支持 function calling，**完美适配 Trae**，同时也支持 Cline、Cursor 等插件。
 
 ## ✨ 特性
 
