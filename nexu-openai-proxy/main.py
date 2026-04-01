@@ -433,6 +433,17 @@ async def get_model(model_id: str):
 
 @app.post("/v1/chat/completions")
 async def chat_completions(req: ChatRequest, request: Request):
+    import logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+    logger = logging.getLogger("nexu-proxy")
+    
+    try:
+        body = await request.json()
+        logger.info(f"=== TRAE REQUEST ===")
+        logger.info(f"Body: {json.dumps(body, ensure_ascii=False)}")
+    except Exception as e:
+        logger.info(f"Could not read body: {e}")
+    
     # Always use the real NEXU_API_KEY for upstream, ignore Trae's dummy key
     api_key = NEXU_API_KEY
     model = MODEL_MAPPING.get(req.model, req.model)
@@ -458,13 +469,17 @@ async def chat_completions(req: ChatRequest, request: Request):
     if req.user:
         payload["user"] = req.user
 
+    logger.info(f"=== PROXY PAYLOAD ===")
+    logger.info(f"Payload: {json.dumps(payload, ensure_ascii=False)[:1000]}")
+
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     url = f"{NEXU_API_BASE}/chat/completions"
 
     if req.stream:
+        logger.info(f"=== STREAMING MODE ===")
         client = httpx.AsyncClient(timeout=300.0)
         return StreamingResponse(
-            stream_sse(client, url, headers, payload),
+            stream_sse(client, url, headers, payload, logger),
             media_type="text/event-stream",
             headers={
                 "Access-Control-Allow-Origin": "*",
@@ -502,9 +517,15 @@ async def chat_completions(req: ChatRequest, request: Request):
                     }
                 )
 
-async def stream_sse(client, url, headers, payload):
+async def stream_sse(client, url, headers, payload, logger=None):
+    if logger is None:
+        logger = logging.getLogger("nexu-proxy")
     try:
+        logger.info(f"=== UPSTREAM REQUEST ===")
+        logger.info(f"URL: {url}")
         async with client.stream("POST", url, headers=headers, json=payload) as resp:
+            logger.info(f"=== UPSTREAM RESPONSE ===")
+            logger.info(f"Status: {resp.status_code}")
             if resp.status_code != 200:
                 # 上游报错，构造错误响应
                 error_body = await resp.aread()
@@ -512,6 +533,8 @@ async def stream_sse(client, url, headers, payload):
                     error_data = json.loads(error_body)
                 except:
                     error_data = {"error": {"message": error_body.decode("utf-8", errors="replace")}}
+                logger.error(f"=== UPSTREAM ERROR ===")
+                logger.error(f"Error: {json.dumps(error_data, ensure_ascii=False)}")
                 error_event = {
                     "id": "error",
                     "object": "chat.completion.chunk",
@@ -524,6 +547,7 @@ async def stream_sse(client, url, headers, payload):
                 return
 
             seen_finish = False
+            chunk_count = 0
             async for line in resp.aiter_lines():
                 if not line:
                     continue
@@ -542,6 +566,9 @@ async def stream_sse(client, url, headers, payload):
                         fr = choices[0].get("finish_reason")
                         if fr:
                             seen_finish = True
+                    chunk_count += 1
+                    logger.info(f"=== SSE CHUNK {chunk_count} ===")
+                    logger.info(f"Chunk: {line[:200]}")
                     yield f"{line}\n\n"
                 except json.JSONDecodeError:
                     yield f"{line}\n\n"
@@ -601,6 +628,7 @@ def print_menu():
     print("  5. 查看配置信息")
     print("  6. 停止所有服务")
     print("  7. 清理环境 (恢复hosts/删除证书)")
+    print("  8. 启动 Trae 代理 (调试模式 - 显示实时日志)")
     print("  0. 退出")
     print("-" * 50)
 
@@ -731,6 +759,32 @@ def start_https():
             pass
         proc.kill()
 
+def start_https_debug():
+    print("\n--- 启动 Trae 代理 (调试模式) ---")
+    
+    if not CERT_FILE.exists() or not KEY_FILE.exists():
+        if not generate_cert():
+            print("  [失败] 证书生成失败")
+            return
+
+    if not install_cert_trust():
+        print("  [失败] 证书未信任，Trae 将无法连接")
+        return
+
+    if not modify_hosts(add=True):
+        print("  [失败] hosts 配置失败")
+        return
+
+    print("\n  正在启动 HTTPS 代理 (调试模式)...")
+    print("  日志将实时显示，按 Ctrl+C 停止\n")
+
+    try:
+        import uvicorn
+        from main import app
+        uvicorn.run(app, host="0.0.0.0", port=443, ssl_keyfile=str(KEY_FILE), ssl_certfile=str(CERT_FILE), log_level="info")
+    except KeyboardInterrupt:
+        print("\n  已停止")
+
 def start_http():
     print("\n--- 启动普通代理 ---")
 
@@ -840,7 +894,7 @@ def main():
     while True:
         try:
             print_menu()
-            choice = input("  请选择 [0-6]: ").strip()
+            choice = input("  请选择 [0-8]: ").strip()
         except (EOFError, KeyboardInterrupt):
             print("\n\n  再见!")
             break
@@ -859,6 +913,8 @@ def main():
             stop_all()
         elif choice == "7":
             cleanup()
+        elif choice == "8":
+            start_https_debug()
         elif choice == "0":
             print("\n  正在停止所有服务...")
             stop_all()
