@@ -11,7 +11,7 @@
 
 | 项目 | 描述 | 标签 |
 |------|------|------|
-| [Nexu OpenAI Proxy](./projects/nexu-openai-proxy) | Nexu 模型反向代理，支持 Cline 等工具 | 🔥 Tool |
+| [Nexu OpenAI Proxy](./projects/nexu-openai-proxy) | Nexu 模型反向代理，支持 Trae 等工具 | 🔥 Tool |
 | (更多项目筹备中...) | - | - |
 
 ## 📖 内容板块
